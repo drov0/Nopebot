@@ -2,14 +2,16 @@ var express = require('express');
 var steem = require('steem');
 var fs = require('fs');
 var sanitize = require("xss");
+var bodyParser = require('body-parser');
 
 var app = express();
 app.use(express.static('public'));
 
-steemUser = "";
-steemPassword =  "";
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-var wif = steem.auth.toWif(steemUser, steemPassword, 'posting');
+var auth = fs.readFileSync(__dirname + "/auth").toString();
+var steemUser = auth.substring(0, auth.indexOf(":"))
+var wif =  auth.substring(auth.indexOf(":")+1)
 
 // Basic url validation
 function validateUrl(url)
@@ -46,9 +48,13 @@ app.get('/', function (req, res) {
 });
 
 
-app.get('/get', function (req,res) {
+app.get('/post', function (req, res) {
+    res.sendFile(__dirname + "/main.html")
+});
+
+app.post('/post', urlencodedParser, function (req,res) {
     var content = fs.readFileSync(__dirname + "/main.html").toString();
-    var url = sanitize(req.query.url);
+    var url = sanitize(req.body.url);
     var data = validateUrl(url);
     console.log(data);
     if (data[0] != "" && data[1] != 0) {
@@ -63,7 +69,7 @@ app.get('/get', function (req,res) {
                 content += "<script> alert('Congratulations ! You got that precious upvote, enjoy it while you can ;)')</script>";
                 setTimeout(function(){
                     steem.broadcast.vote(wif, steemUser, username, identifier, 0)
-                }, 720 * 1000);
+                }, 120 * 1000);
             }
             res.send(content);
             res.end();
@@ -79,5 +85,6 @@ app.get('/get', function (req,res) {
 
 app.listen(80, function () {
     console.log("Nopebot is ready to go !")
+
 })
 

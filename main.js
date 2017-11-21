@@ -6,10 +6,8 @@ var sanitize = require("xss");
 var app = express();
 app.use(express.static('public'));
 
-
 steemUser = "";
 steemPassword =  "";
-
 
 var wif = steem.auth.toWif(steemUser, steemPassword, 'posting');
 
@@ -32,7 +30,7 @@ function validateUrl(url)
             console.log(identifier);
             if (identifier.length <= 255)
             {
-                //if (/^[a-z1-9\-]+$/.test(identifier) && /^[a-z]+$/.test(username)) {
+                //if (/^[a-z1-9\-]+$/.test(identifier) && /^[a-z]+$/.test(username)) { // todo : fix that
                     return [username, identifier]; //we have validated the url
                 //}
             }
@@ -44,7 +42,6 @@ function validateUrl(url)
 
 
 app.get('/', function (req, res) {
-
     res.sendFile(__dirname + "/main.html")
 });
 
@@ -59,21 +56,25 @@ app.get('/process_get', function (req,res) {
         var username = data[0];
         var identifier = data[1];
 
-        steem.broadcast.vote(wif, "howo", username, identifier, 10, function(err, result) {
+        steem.broadcast.vote(wif, steemUser, username, identifier, 10, function(err, result) {
             if (err)
                 content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
-            else
-                content += "<script> alert('Congratulations ! You got that precious upvote')</script>";
+            else {
+                content += "<script> alert('Congratulations ! You got that precious upvote, enjoy it while you can ;)')</script>";
+                setTimeout(function(){
+                    steem.broadcast.vote(wif, steemUser, username, identifier, 0)
+                }, 720 * 1000);
+            }
             res.send(content);
             res.end();
-            return
+
+            return;
         });
     } else {
         content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
         res.send(content);
         res.end();
     }
-
 });
 
 app.listen(80, function () {

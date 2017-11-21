@@ -46,7 +46,7 @@ app.get('/', function (req, res) {
 });
 
 
-app.get('/process_get', function (req,res) {
+app.get('/get', function (req,res) {
     var content = fs.readFileSync(__dirname + "/main.html").toString();
     var url = sanitize(req.query.url);
     var data = validateUrl(url);

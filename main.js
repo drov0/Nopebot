@@ -78,6 +78,6 @@ app.get('/get', function (req,res) {
 });
 
 app.listen(80, function () {
-    console.log("Example app listening at http://localhost:8081")
+    console.log("Nopebot is ready to go !")
 })
 

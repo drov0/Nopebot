@@ -5,41 +5,78 @@ var sanitize = require("xss");
 
 var app = express();
 app.use(express.static('public'));
-app.get('/', function (req, res) {
-    res.sendfile(__dirname + "/index.html")
-});
 
-function validate_url(url)
+
+steemUser = "";
+steemPassword =  "";
+
+
+var wif = steem.auth.toWif(steemUser, steemPassword, 'posting');
+
+// Basic url validation
+function validateUrl(url)
 {
-    aro = url.find("@");
+    posA = url.indexOf("@");
 
-    if (url[0] == "@")
+    if (posA != -1)
     {
+        url = url.substring(posA)
 
+        posSlash = url.indexOf("/")
+
+        if (posSlash != -1 && posSlash <= 17) // an username is 16 chars max + 1 for the @
+        {
+            username = url.substring(1, posSlash)
+            identifier = url.substring(posSlash+1)
+            console.log(username);
+            console.log(identifier);
+            if (identifier.length <= 255)
+            {
+                //if (/^[a-z1-9\-]+$/.test(identifier) && /^[a-z]+$/.test(username)) {
+                    return [username, identifier]; //we have validated the url
+                //}
+            }
+        }
     }
 
-
-    return false;
-
-
+    return ["",""];
 }
 
 
+app.get('/', function (req, res) {
+
+    res.sendFile(__dirname + "/main.html")
+});
+
+
 app.get('/process_get', function (req,res) {
+    var content = fs.readFileSync(__dirname + "/main.html").toString();
+    var url = sanitize(req.query.url);
+    var data = validateUrl(url);
+    console.log(data);
+    if (data[0] != "" && data[1] != 0) {
 
-    url = sanitize(req.query.url);
+        var username = data[0];
+        var identifier = data[1];
 
-    validate_url(url);
+        steem.broadcast.vote(wif, "howo", username, identifier, 10, function(err, result) {
+            if (err)
+                content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
+            else
+                content += "<script> alert('Congratulations ! You got that precious upvote')</script>";
+            res.send(content);
+            res.end();
+            return
+        });
+    } else {
+        content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
+        res.send(content);
+        res.end();
+    }
 
-    console.log(url);
+});
 
-    res.sendfile(__dirname + "/index.html")
-
-})
-
-var server = app.listen(8081, function () {
-    var host = server.address().address
-    var port = server.address().port
-    console.log("Example app listening at http://%s:%s", host, port)
+app.listen(80, function () {
+    console.log("Example app listening at http://localhost:8081")
 })
 

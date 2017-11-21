@@ -31,11 +31,7 @@ function validateUrl(url)
             console.log(username);
             console.log(identifier);
             if (identifier.length <= 255)
-            {
-                //if (/^[a-z1-9\-]+$/.test(identifier) && /^[a-z]+$/.test(username)) { // todo : fix that
                     return [username, identifier]; //we have validated the url
-                //}
-            }
         }
     }
 
@@ -56,12 +52,9 @@ app.post('/post', urlencodedParser, function (req,res) {
     var content = fs.readFileSync(__dirname + "/main.html").toString();
     var url = sanitize(req.body.url);
     var data = validateUrl(url);
-    console.log(data);
     if (data[0] != "" && data[1] != 0) {
-
         var username = data[0];
         var identifier = data[1];
-
         steem.broadcast.vote(wif, steemUser, username, identifier, 10, function(err, result) {
             if (err)
                 content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
@@ -85,6 +78,5 @@ app.post('/post', urlencodedParser, function (req,res) {
 
 app.listen(80, function () {
     console.log("Nopebot is ready to go !")
-
-})
+});
 

@@ -49,6 +49,7 @@ app.get('/post', function (req, res) {
 });
 
 app.post('/post', urlencodedParser, function (req,res) {
+    var success = false;
     var content = fs.readFileSync(__dirname + "/main.html").toString();
     var url = sanitize(req.body.url);
     var data = validateUrl(url);
@@ -60,15 +61,22 @@ app.post('/post', urlencodedParser, function (req,res) {
                 content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
             else {
                 content += "<script> alert('Congratulations ! You got that precious upvote, enjoy it while you can ;)')</script>";
-                setTimeout(function(){
-                    steem.broadcast.vote(wif, steemUser, username, identifier, 0)
-                }, 120 * 1000);
+                success = true;
             }
             res.send(content);
             res.end();
-
-            return;
         });
+
+            setTimeout(function () {
+                if (success) {
+                    steem.broadcast.vote(wif, steemUser, username, identifier, 0, function (err, result) {
+                        if (err)
+                            console.log(err);
+                    success = false;
+                    });
+                }
+            }, 20 * 1000);
+
     } else {
         content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
         res.send(content);

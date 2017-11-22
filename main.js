@@ -57,8 +57,10 @@ app.post('/post', urlencodedParser, function (req,res) {
         var username = data[0];
         var identifier = data[1];
         steem.broadcast.vote(wif, steemUser, username, identifier, 10, function(err, result) {
-            if (err)
+            if (err) {
                 content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
+                console.log(err);
+            }
             else {
                 content += "<script> alert('Congratulations ! You got that precious upvote, enjoy it while you can ;)')</script>";
                 success = true;

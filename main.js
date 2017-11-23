@@ -50,40 +50,55 @@ app.get('/post', function (req, res) {
 
 app.post('/post', urlencodedParser, function (req,res) {
     var success = false;
+    console.log("Reading the file");
     var content = fs.readFileSync(__dirname + "/main.html").toString();
+    console.log("Sanitizing");
     var url = sanitize(req.body.url);
+    console.log("validating");
     var data = validateUrl(url);
     if (data[0] != "" && data[1] != 0) {
         var username = data[0];
         var identifier = data[1];
+        console.log("broadcasting");
         steem.broadcast.vote(wif, steemUser, username, identifier, 10, function(err, result) {
             if (err) {
                 content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
                 console.log(err);
+                console.log("error");
             }
             else {
                 content += "<script> alert('Congratulations ! You got that precious upvote, enjoy it while you can ;)')</script>";
                 success = true;
+                console.log("git gud");
             }
+            console.log("sending the page");
             res.send(content);
             res.end();
+            console.log("end of the broadcast");
         });
-
+        console.log("setting the timeout");
             setTimeout(function () {
                 if (success) {
+                    console.log("unvoting");
                     steem.broadcast.vote(wif, steemUser, username, identifier, 0, function (err, result) {
-                        if (err)
+                        if (err) {
+                            console.log("error while unvoting");
                             console.log(err);
-                    success = false;
+                        }
+                        success = false;
+                        console.log("exiting timeout");
                     });
                 }
             }, 20 * 1000);
-
+        console.log("exiting timeout");
     } else {
         content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
+        console.log("error sending page");
         res.send(content);
         res.end();
+
     }
+    console.log("Completely done");
 });
 
 app.listen(80, function () {

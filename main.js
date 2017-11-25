@@ -8,7 +8,7 @@ var app = express();
 app.use(express.static('public'));
 
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
-steem.api.setOptions({ url: 'wss://node.steem.ws' });
+steem.api.setOptions({ url: 'wss://this.piston.rocks' });
 var auth = fs.readFileSync(__dirname + "/auth").toString();
 var steemUser = auth.substring(0, auth.indexOf(":"))
 var wif =  auth.substring(auth.indexOf(":")+1)

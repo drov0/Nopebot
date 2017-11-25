@@ -8,7 +8,7 @@ var app = express();
 app.use(express.static('public'));
 
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
-
+steem.api.setOptions({ url: 'wss://node.steem.ws' });
 var auth = fs.readFileSync(__dirname + "/auth").toString();
 var steemUser = auth.substring(0, auth.indexOf(":"))
 var wif =  auth.substring(auth.indexOf(":")+1)
@@ -49,6 +49,7 @@ app.get('/post', function (req, res) {
 });
 
 app.post('/post', urlencodedParser, function (req,res) {
+
     var success = false;
     console.log("Reading the file");
     var content = fs.readFileSync(__dirname + "/main.html").toString();
@@ -61,9 +62,10 @@ app.post('/post', urlencodedParser, function (req,res) {
         var identifier = data[1];
         console.log("broadcasting");
         steem.broadcast.vote(wif, steemUser, username, identifier, 10, function(err, result) {
+
             if (err) {
-                content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>";
-                console.log(err);
+                console.log(err, result);
+                content += "<script> alert('Awww there was an error :( we probably already voted on your post.')</script>"
                 console.log("error");
             }
             else {
@@ -96,7 +98,6 @@ app.post('/post', urlencodedParser, function (req,res) {
         console.log("error sending page");
         res.send(content);
         res.end();
-
     }
     console.log("Completely done");
 });
